@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Prek‑C｜森林探险家打卡</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:"PingFang SC",system-ui,-apple-system}
+body{
+  background:#f4f9ee;
+  color:#2c422e;
+  padding:0;
+  max-width:100%;
+  overflow-x:hidden;
+}
+.app{
+  width:100vw;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  background:#f4f9ee;
+}
+.phone{
+  width:100%;
+  max-width:430px;
+  background:#f4f9ee;
+  min-height:100vh;
+  padding:12px;
+  margin:0 auto;
+  box-shadow:0 0 20px rgba(0,0,0,0.05);
+  position:relative;
+  overflow:hidden;
+}
+.page-wrap{
+  width:100%;
+  height:100%;
+  position:absolute;
+  top:0;
+  left:0;
+  transition: transform 0.4s ease-in-out;
+  backface-visibility:hidden;
+  padding:12px;
+}
+.page-next{
+  transform: translateX(105%);
+}
+.page-prev{
+  transform: translateX(-105%);
+}
+.page-active{
+  transform: translateX(0);
+}
+h1{font-size:20px;margin-bottom:6px;color:#375739;text-align:center}
+.sub{color:#547056;margin-bottom:16px;font-size:14px;text-align:center}
+.card{
+  background:#fff;
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:14px;
+  box-shadow:0 2px 6px #00000010;
+}
+.btn{
+  background:#548c57;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  padding:12px 10px;
+  font-size:16px;
+  width:100%;
+  cursor:pointer;
+  margin-top:8px;
+}
+.btn:active{background:#437046}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.child-item{
+  border:1px solid #b8d2ba;
+  border-radius:10px;
+  padding:10px 4px;
+  text-align:center;
+  cursor:pointer;
+  background:#f8fbf4;
+  font-size:14px;
+}
+.child-item.active{background:#cce8cf;border-color:#548c57}
+.box-view{background:#fff8e8;border-radius:12px;padding:14px;margin:12px 0}
+.item-tag{
+  display:inline-block;
+  background:#e6f2e7;
+  border-radius:8px;
+  padding:4px 8px;
+  margin:3px;
+  font-size:13px;
+}
+.draw-anim{text-align:center;padding:16px;font-size:16px}
+.back-btn{background:#888}
+.record-item{border-bottom:1px solid #eee;padding:10px 0;font-size:14px}
+textarea{
+  width:100%;
+  border:1px solid #ccc;
+  border-radius:8px;
+  padding:10px;
+  font-size:15px;
+  min-height:75px;
+  margin:8px 0;
+}
+.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
+video.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
+.tip-text{font-size:12px;color:#666;margin:4px 0;}
+.treasure-map{
+  border:2px dashed #b8d2ba;
+  border-radius:12px;
+  padding:12px;
+  margin:8px 0;
+  background:#fbfdf8;
+}
+.treasure-line{margin:8px 0}
+.treasure-label{font-size:14px;margin-bottom:4px}
+.treasure-grid{display:flex;gap:3px;flex-wrap:wrap}
+.treasure-cell{
+  width:24px;
+  height:24px;
+  border:1px solid #ddd;
+  border-radius:5px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  background:#f7f7f7;
+}
+.treasure-cell.active{background:#e6f2e7;border-color:#548c57}
+
+/* 翻牌卡片 */
+.flip-wrap{
+  perspective: 600px;
+  width:140px;
+  height:180px;
+  margin:16px auto;
+}
+.flip-card{
+  width:100%;
+  height:100%;
+  position:relative;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+.flip-card.flipped{
+  transform: rotateY(180deg);
+}
+.flip-front, .flip-back{
+  position:absolute;
+  width:100%;
+  height:100%;
+  backface-visibility:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:12px;
+  font-size:44px;
+}
+.flip-front{
+  background:#b8d2ba;
+  color:#2c422e;
+  border:2px solid #548c57;
+}
+.flip-back{
+  background:#fff;
+  border:2px solid #548c57;
+  transform: rotateY(180deg);
+}
+
+/* 身份封面 */
+.cover{
+  width:100%;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px 12px;
+}
+.cover-card{
+  width:100%;
+  border-radius:20px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255,255,255,0.35), transparent 26%),
+    radial-gradient(circle at 80% 18%, rgba(255,255,255,0.25), transparent 22%),
+    linear-gradient(160deg, #6fae6a 0%, #4b8c59 45%, #2f6b45 100%);
+  box-shadow:0 18px 40px rgba(44,82,46,0.35);
+  position:relative;
+}
+.cover-forest{
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:42%;
+  background:
+    linear-gradient(to top, rgba(20,60,30,0.55), transparent),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='180' viewBox='0 0 240 180'><g fill='%231f5132'><ellipse cx='40' cy='150' rx='36' ry='14'/><ellipse cx='90' cy='140' rx='46' ry='18'/><ellipse cx='150' cy='148' rx='40' ry='16'/><ellipse cx='200' cy='136' rx='34' ry='13'/></g><g fill='%232f7a47'><circle cx='40' cy='130' r='22'/><circle cx='90' cy='116' r='28'/><circle cx='150' cy='124' r='24'/><circle cx='200' cy='114' r='20'/></g><g fill='%233f9a58'><polygon points='40,90 28,130 52,130'/><polygon points='90,76 74,120 106,120'/><polygon points='150,84 134,124 166,124'/><polygon points='200,74 184,114 216,114'/></g></svg>") bottom center/cover no-repeat;
+  opacity:0.9;
+  pointer-events:none;
+}
+.cover-content{
+  position:relative;
+  z-index:2;
+  padding:40px 18px 180px;
+  text-align:center;
+  color:#fff;
+}
+.cover-logo{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.35);
+  padding:8px 14px;
+  border-radius:999px;
+  font-size:13px;
+  letter-spacing:1px;
+  margin-bottom:14px;
+}
+.cover-title{
+  font-size:30px;
+  font-weight:800;
+  line-height:1.15;
+  margin-bottom:10px;
+  text-shadow:0 4px 14px rgba(0,0,0,0.25);
+}
+.cover-title span{
+  background:linear-gradient(90deg,#fff6b3,#ffd966);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.cover-slogan{
+  font-size:15px;
+  opacity:0.95;
+  margin-bottom:18px;
+}
+.cover-hint{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:18px;
+}
+.cover-hint b{
+  background:rgba(255,255,255,0.2);
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:13px;
+}
+.cover-buttons{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:10px;
+}
+.cover-btn{
+  border:none;
+  border-radius:14px;
+  padding:14px;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  color:#2c422e;
+  background:linear-gradient(180deg,#fffbe4,#ffe77a);
+  box-shadow:0 10px 24px rgba(0,0,0,0.18);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+.cover-btn.teacher{
+  background:linear-gradient(180deg,#eafff2,#a6e4c1);
+}
+.cover-footer{
+  position:absolute;
+  left:0;right:0;bottom:14px;
+  text-align:center;
+  color:rgba(255,255,255,0.8);
+  font-size:12px;
+  z-index:2;
+}
+.stat-item{
+  padding:4px 0;
+  font-size:14px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="phone">
+    <div id="app">
+      <!--P0 身份封面页-->
+      <div id="page0" class="page-wrap page-active">
+        <div class="cover">
+          <div class="cover-card">
+            <div class="cover-forest"></div>
+            <div class="cover-content">
+              <div class="cover-logo">🌲 Prek‑C · 森林探险家</div>
+              <div class="cover-title">亲子运动<br><span>探险打卡</span></div>
+              <div class="cover-slogan">走进森林，快乐动起来，收集属于我们的自然宝藏</div>
+              <div class="cover-hint">
+                <b>📸 拍照记录</b>
+                <b>🎥 视频记录</b>
+                <b>🗺️ 宝藏地图</b>
+              </div>
+              <div class="cover-buttons">
+                <button class="cover-btn" id="btnParent">👨‍👩‍👧‍👦 我是家长</button>
+                <button class="cover-btn teacher" id="btnTeacher">👩‍🏫 我是老师</button>
+              </div>
+            </div>
+            <div class="cover-footer">选择身份，开始今日探险</div>
+          </div>
+        </div>
+      </div>
+
+      <!--P1 选择小朋友页-->
+      <div id="page1" class="page-wrap page-next">
+        <h1>🌲 Prek‑C 森林探险家</h1>
+        <div class="sub">身份：<span id="showIdentity"></span>｜选择小探险家</div>
+        <div class="card" id="teacherStatCard">
+          <h3>📊今日打卡统计</h3>
+          <div id="statText"></div>
+          <div id="statList"></div>
+        </div>
+        <div class="card">
+          <div>请选择小探险家：</div>
+          <div class="grid" id="childListDom"></div>
+        </div>
+        <div class="card">
+          <div>📦 班级收藏宝盒总览</div>
+          <div id="boxBrief"></div>
+          <button class="btn" id="goBoxBtn">查看完整宝盒</button>
+        </div>
+        <button class="btn back-btn" id="back0Btn">← 返回选择身份</button>
+      </div>
+
+      <!--P2 功能选择页（打卡 / 藏宝记录）-->
+      <div id="page2" class="page-wrap page-next">
+        <h1>✨探险菜单</h1>
+        <div class="sub">小探险家：<span id="currChildName2"></span></div>
+        <div class="card">
+          <button class="btn" id="goTaskBtn">🏃 今日运动打卡</button>
+          <button class="btn" id="goRecordBtn">🗺️ 查看藏宝记录</button>
+        </div>
+        <button class="btn back-btn" id="back1Btn">← 返回选择小朋友</button>
+      </div>
+
+      <!--P3 打卡填写页-->
+      <div id="page3" class="page-wrap page-next">
+        <h1>🌲探险打卡</h1>
+        <div class="sub">小探险家：<span id="currChildName"></span>｜身份：<span id="currIdentityText"></span></div>
+        <div class="card" id="parentSuggestCard">
+          <h3>💡今日亲子运动</h3>
+          <p id="suggestText"></p>
+        </div>
+        <div class="card">
+          <h4>📝打卡记录</h4>
+          <p>文字记录：</p>
+          <textarea id="noteInput" placeholder="写下本次活动的小故事、感受……"></textarea>
+          <p>📷媒体记录（可选：拍照 / 录视频 / 相册选取）</p>
+          <div class="tip-text">建议短视频15秒以内，过大视频会存储失败</div>
+          <input type="file" id="fileInput" accept="image/*,video/*" capture="camera">
+          <div id="mediaPreviewWrap"></div>
+          <button class="btn" id="doCheckInBtn">✅提交打卡，抽取自然宝藏</button>
+        </div>
+        <button class="btn back-btn" id="back2Btn">← 返回探险菜单</button>
+      </div>
+
+      <!--P4 翻牌抽宝藏-->
+      <div id="page4" class="page-wrap page-next">
+        <div class="draw-anim card">
+          <h2>🎉探险打卡成功！</h2>
+          <div class="flip-wrap">
+            <div class="flip-card" id="flipCard">
+              <div class="flip-front">❓</div>
+              <div class="flip-back" id="drawIcon">🌿</div>
+            </div>
+          </div>
+          <div id="resultText" style="margin-top:8px;font-size:14px;display:none">
+            你抽到：<span id="drawItemName" style="font-weight:bold"></span>
+            <div style="margin-top:6px">这件宝藏已存入你的个人藏宝图 & 班级收藏宝盒</div>
+          </div>
+          <button class="btn" id="drawDoneBtn" style="display:none">继续探险</button>
+        </div>
+      </div>
+
+      <!--P5 班级宝盒-->
+      <div id="page5" class="page-wrap page-next">
+        <h1>📦 Prek‑C 班级收藏宝盒</h1>
+        <div class="box-view">
+          <div>宝盒阶段：<span id="boxStage"></span></div>
+          <div>班级总打卡次数：<span id="totalCheck"></span></div>
+          <div>收集自然物总件数：<span id="totalItem"></span></div>
+          <div style="margin-top:10px">已收集宝藏：</div>
+          <div id="itemListDom"></div>
+        </div>
+        <button class="btn back-btn" id="backFromBoxBtn">← 返回上一页</button>
+      </div>
+
+      <!--P6 个人藏宝图-->
+      <div id="page6" class="page-wrap page-next">
+        <h1>📜个人探险藏宝图</h1>
+        <div class="sub">小探险家：<span id="recordChildName"></span></div>
+        <div class="card">
+          <div>个人打卡总次数：<span id="personCheckCount">0</span></div>
+          <div class="treasure-map" id="treasureMapWrap">
+            <div style="text-align:center;margin-bottom:8px;font-weight:bold">🗺️我的宝藏地图</div>
+          </div>
+        </div>
+        <div class="card">
+          <h4>打卡历史明细（文字、照片、视频）</h4>
+          <div id="recordListDom"></div>
+        </div>
+        <button class="btn back-btn" id="backFromRecordBtn">← 返回探险菜单</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const childList = [
+  {id:1,name:"何心熠"},{id:2,name:"曾麦甜"},{id:3,name:"邹清越"},{id:4,name:"胡未晞"},
+  {id:5,name:"周烨可"},{id:6,name:"刘泽言"},{id:7,name:"程恺麟"},{id:8,name:"林欧文"},
+  {id:9,name:"戴心一"},{id:10,name:"陈家庆"},{id:11,name:"罗韵知"},{id:12,name:"方译骁"},
+  {id:13,name:"叶悠宜"},{id:14,name:"季琛凡"},{id:15,name:"林慕勒"},{id:16,name:"程千与"},
+  {id:17,name:"林知言"},{id:18,name:"周安迪"},{id:19,name:"戴宸惜"},{id:20,name:"高灏"},
+  {id:21,name:"高潜声"},{id:22,name:"卢垵诺"},{id:23,name:"翁崇耀"},{id:24,name:"杜圣均"}
+];
+
+const itemPool = [
+  {key:"flower",name:"小花",icon:"🌸"},
+  {key:"pinecone",name:"松果",icon:"🌰"},
+  {key:"leaf",name:"树叶",icon:"🍂"},
+  {key:"grass",name:"小草",icon:"🌿"}
+];
+
+const parentSuggestList = [
+  "（运动小建议：小兔跳一跳：亲子原地模仿小兔跳跃10次，跳完一起击掌庆祝。）",
+  "（运动小建议：松鼠爬树：孩子当小松鼠，家长用双手搭成树干，沿“树干”慢慢攀爬。）",
+  "（运动小建议：森林平衡木：在地面画一条线，亲子模仿森林探险者走平衡线。）",
+  "（运动小建议：青蛙荷叶跳：地面放几张纸当荷叶，亲子跳过“荷叶”不落水。）",
+  "（运动小建议：小熊慢走：弯腰屈膝模仿小熊走路，绕房间慢慢走一圈。）",
+  "（运动小建议：小鹿快跑：亲子在安全空间里模仿小鹿轻快奔跑，家长喊停就定格。）",
+  "（运动小建议：大树伸展：孩子模仿树干，家长模仿树枝，一起做向上伸展。）",
+  "（运动小建议：蜗牛慢爬：亲子蹲下或趴下，像蜗牛一样慢慢向前移动。）",
+  "（运动小建议：老鹰抓小鸡：家长当老鹰，孩子当小鸡，灵活躲闪保护自己。）",
+  "（运动小建议：袋鼠跳跳乐：双手放胸前模仿袋鼠，原地连续小跳15次。）",
+  "（运动小建议：森林障碍走：设置靠垫障碍，亲子绕障碍、跨障碍完成探险路线。）",
+  "（运动小建议：鱼儿游游：双臂张开模仿鱼鳍，在房间里轻轻游动。）",
+  "（运动小建议：螃蟹横走：蹲下横着走，像小螃蟹一样穿过森林小路。）",
+  "（运动小建议：蝴蝶飞飞：双臂做翅膀，轻轻飞起落下，配合深呼吸。）",
+  "（运动小建议：啄木鸟点地：单脚站立，另一只脚轻点地面，模仿啄木鸟啄树。）",
+  "（运动小建议：森林抱抱：家长张开双臂，孩子跑过来完成一次大大的森林抱抱。）",
+  "（运动小建议：毛毛虫扭扭：蹲下抱膝，像毛毛虫一样扭动身体前进。）",
+  "（运动小建议：小马驾驾：模仿小马小跑，膝盖抬高，家长喊“驾”就加速。）",
+  "（运动小建议：蘑菇圈圈跳：原地画圆，亲子跳进跳出，模仿蘑菇圈圈游戏。）",
+  "（运动小建议：森林拉伸操：一起做上肢、下肢和腰部拉伸，放松身体。）",
+  "（运动小建议：小猴荡秋千：家长轻扶孩子双手，模仿小猴荡秋千轻轻摆动。）",
+  "（运动小建议：企鹅走走：双手贴身体两侧，模仿企鹅摇摇摆摆走一圈。）",
+  "（运动小建议：寻宝折返跑：家长指定终点，孩子跑到终点取回一件“森林宝物”。）",
+  "（运动小建议：森林击鼓传花：听音乐走动，音乐停时摆出一个森林动物姿势。）",
+  "（运动小建议：小鱼吐泡泡：原地慢跑配合呼气，想象吐出彩色泡泡。）",
+  "（运动小建议：青蛙蹲一蹲：亲子一起做青蛙蹲，边蹲边说“呱、呱、呱”。）",
+  "（运动小建议：树叶飘飘：原地转圈，双臂像树叶一样轻轻飘落。）",
+  "（运动小建议：松果传递：用膝盖夹住软垫或小球，从起点传到终点。）",
+  "（运动小建议：森林闯关：设计“跳、走、跨、爬”4个小关卡，一起完成。）",
+  "（运动小建议：探险总结会：回顾30天运动，孩子说一说最喜欢的森林游戏。）"
+];
+
+const STORAGE_KEY = "prekc_forest_box_v6";
+
+function initBox(){
+  let raw = localStorage.getItem(STORAGE_KEY);
+  if(raw) return JSON.parse(raw);
+  return {totalCheckIns:0,collected:{flower:0,pinecone:0,leaf:0,grass:0},records:[]};
+}
+function saveBox(box){localStorage.setItem(STORAGE_KEY,JSON.stringify(box));}
+function getBoxStage(total){
+  if(total<=2) return "空盒启程";
+  if(total<=7) return "初遇宝藏";
+  if(total<=14) return "森林收获";
+  return "宝藏满满";
+}
+function randomDraw(){
+  return itemPool[Math.floor(Math.random()*itemPool.length)];
+}
+function getTodaySuggestion(){
+  const day = new Date().getDate();
+  const index = (day - 1) % parentSuggestList.length;
+  return parentSuggestList[index];
+}
+function getTodayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`
+}
+function renderTeacherStat(){
+  const box = initBox();
+  const todayStr = getTodayStr();
+  const todayRecords = box.records.filter(r=>{
+    return r.time.startsWith(todayStr)
+  })
+  const uniqueChild = [];
+  const seenId = new Set();
+  todayRecords.forEach(r=>{
+    if(!seenId.has(r.childId)){
+      seenId.add(r.childId);
+      uniqueChild.push(r);
+    }
+  })
+  document.getElementById("statText").innerText = `今日已打卡：${uniqueChild.length} / ${childList.length}人`
+  let listHtml = ""
+  uniqueChild.forEach(r=>{
+    listHtml += `<div class="stat-item">✅ ${r.childName}</div>`
+  })
+  if(uniqueChild.length === 0) listHtml = `<div style="color:#777">暂无打卡</div>`
+  document.getElementById("statList").innerHTML = listHtml
+}
+
+const page0 = document.getElementById("page0");
+const page1 = document.getElementById("page1");
+const page2 = document.getElementById("page2");
+const page3 = document.getElementById("page3");
+const page4 = document.getElementById("page4");
+const page5 = document.getElementById("page5");
+const page6 = document.getElementById("page6");
+const allPages = [page0,page1,page2,page3,page4,page5,page6];
+
+function goPage(target){
+  allPages.forEach(p=>{
+    p.classList.remove("page-active","page-next","page-prev");
+    p.classList.add("page-next");
+  })
+  target.classList.add("page-active");
+}
+
+const btnParent = document.getElementById("btnParent");
+const btnTeacher = document.getElementById("btnTeacher");
+const showIdentity = document.getElementById("showIdentity");
+const back0Btn = document.getElementById("back0Btn");
+const back1Btn = document.getElementById("back1Btn");
+const back2Btn = document.getElementById("back2Btn");
+const childListDom = document.getElementById("childListDom");
+const currChildName2 = document.getElementById("currChildName2");
+const goTaskBtn = document.getElementById("goTaskBtn");
+const goRecordBtn = document.getElementById("goRecordBtn");
+const currChildName = document.getElementById("currChildName");
+const currIdentityText = document.getElementById("currIdentityText");
+const parentSuggestCard = document.getElementById("parentSuggestCard");
+const suggestText = document.getElementById("suggestText");
+const noteInput = document.getElementById("noteInput");
+const fileInput = document.getElementById("fileInput");
+const mediaPreviewWrap = document.getElementById("mediaPreviewWrap");
+const doCheckInBtn = document.getElementById("doCheckInBtn");
+const teacherStatCard = document.getElementById("teacherStatCard");
+const statText = document.getElementById("statText");
+const statList = document.getElementById("statList");
+
+const flipCard = document.getElementById("flipCard");
+const drawIcon = document.getElementById("drawIcon");
+const drawItemName = document.getElementById("drawItemName");
+const resultText = document.getElementById("resultText");
+const drawDoneBtn = document.getElementById("drawDoneBtn");
+
+const goBoxBtn = document.getElementById("goBoxBtn");
+const boxBrief = document.getElementById("boxBrief");
+const backFromBoxBtn = document.getElementById("backFromBoxBtn");
+const boxStageDom = document.getElementById("boxStage");
+const totalCheckDom = document.getElementById("totalCheck");
+const totalItemDom = document.getElementById("totalItem");
+const itemListDom = document.getElementById("itemListDom");
+const recordChildName = document.getElementById("recordChildName");
+const personCheckCount = document.getElementById("personCheckCount");
+const treasureMapWrap = document.getElementById("treasureMapWrap");
+const recordListDom = document.getElementById("recordListDom");
+const backFromRecordBtn = document.getElementById("backFromRecordBtn");
+
+let selectedChild = null;
+let currentIdentity = null;
+let selectedMediaBase64 = null;
+let selectedMediaType = null;
+
+fileInput.onchange = function(e){
+  const file = e.target.files[0];
+  if(!file){selectedMediaBase64=null;selectedMediaType=null;mediaPreviewWrap.innerHTML="";return;}
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    selectedMediaBase64 = ev.target.result;
+    if(file.type.startsWith("video/")){
+      selectedMediaType = "video";
+      mediaPreviewWrap.innerHTML = `<video class="img-preview" controls src="${selectedMediaBase64}"></video>`;
+    }else{
+      selectedMediaType = "image";
+      mediaPreviewWrap.innerHTML = `<img class="img-preview" src="${selectedMediaBase64}">`;
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+function renderChildList(){
+  childListDom.innerHTML = "";
+  childList.forEach(c=>{
+    let div = document.createElement("div");
+    div.className = "child-item";
+    div.innerText = c.name;
+    div.dataset.id = c.id;
+    div.onclick = ()=>{
+      document.querySelectorAll(".child-item").forEach(d=>d.classList.remove("active"));
+      div.classList.add("active");
+      selectedChild = c;
+      currChildName2.innerText = c.name;
+      goPage(page2);
+    };
+    childListDom.appendChild(div);
+  });
+}
+function renderBoxBrief(){
+  let box = initBox();
+  let sum = Object.values(box.collected).reduce((a,b)=>a+b,0);
+  boxBrief.innerHTML = `<div>阶段：${getBoxStage(sum)}</div><div>总打卡：${box.totalCheckIns}｜宝藏总数：${sum}</div>`;
+}
+function renderBoxPage(){
+  let box = initBox();
+  let sumItem = Object.values(box.collected).reduce((a,b)=>a+b,0);
+  boxStageDom.innerText = getBoxStage(sumItem);
+  totalCheckDom.innerText = box.totalCheckIns;
+  totalItemDom.innerText = sumItem;
+  itemListDom.innerHTML = "";
+  itemPool.forEach(it=>{
+    let cnt = box.collected[it.key]||0;
+    let tag = document.createElement("span");
+    tag.className = "item-tag";
+    tag.innerText = `${it.icon} ${it.name} ×${cnt}`;
+    itemListDom.appendChild(tag);
+  });
+}
+function renderTreasureMap(personCollect){
+  let html = `<div style="text-align:center;margin-bottom:8px;font-weight:bold">🗺️我的宝藏地图</div>`;
+  itemPool.forEach(it=>{
+    let num = personCollect[it.key]||0;
+    html += `<div class="treasure-line"><div class="treasure-label">${it.icon} ${it.name}：${num}个</div><div class="treasure-grid">`;
+    for(let i=0;i<12;i++){
+      html += i < num
+        ? `<div class="treasure-cell active">${it.icon}</div>`
+        : `<div class="treasure-cell"></div>`;
+    }
+    html += `</div></div>`;
+  });
+  treasureMapWrap.innerHTML = html;
+}
+function renderPersonRecord(child){
+  const box = initBox();
+  const myRecords = box.records.filter(r=>r.childId === child.id);
+  recordChildName.innerText = child.name;
+  personCheckCount.innerText = myRecords.length;
+  let personCollect = {flower:0,pinecone:0,leaf:0,grass:0};
+  myRecords.forEach(r=>{personCollect[r.item]+=1;});
+  renderTreasureMap(personCollect);
+  recordListDom.innerHTML = "";
+  if(myRecords.length === 0){
+    recordListDom.innerHTML = "<div style='color:#777'>暂无打卡记录，快去完成打卡收集宝藏吧！</div>";
+  }else{
+    myRecords.slice().reverse().forEach(r=>{
+      const findItem = itemPool.find(p=>p.key === r.item);
+      let div = document.createElement("div");
+      div.className = "record-item";
+      let htmlText = `<div>${r.time}｜身份：${r.identity==='parent'?'家长':'老师'}｜获得 ${findItem.icon}${findItem.name}</div>`;
+      if(r.note) htmlText += `<div style="margin:4px 0;color:#333">📝${r.note}</div>`;
+      if(r.media && r.mediaType === "image") htmlText += `<img class="img-preview" src="${r.media}">`;
+      if(r.media && r.mediaType === "video") htmlText += `<video class="img-preview" controls src="${r.media}"></video>`;
+      div.innerHTML = htmlText;
+      recordListDom.appendChild(div);
+    });
+  }
+}
+function resetTaskForm(){
+  noteInput.value="";
+  fileInput.value="";
+  mediaPreviewWrap.innerHTML="";
+  selectedMediaBase64=null;
+  selectedMediaType=null;
+}
+
+btnParent.onclick = function(){
+  currentIdentity = "parent";
+  showIdentity.innerText = "👨‍👩‍👧‍👦家长";
+  teacherStatCard.classList.add("hide");
+  goPage(page1);
+};
+btnTeacher.onclick = function(){
+  currentIdentity = "teacher";
+  showIdentity.innerText = "👩‍🏫老师";
+  teacherStatCard.classList.remove("hide");
+  renderTeacherStat();
+  goPage(page1);
+};
+back0Btn.onclick = ()=>{
+  currentIdentity=null;selectedChild=null;
+  document.querySelectorAll(".child-item").forEach(d=>d.classList.remove("active"));
+  renderBoxBrief();
+  goPage(page0);
+};
+back1Btn.onclick = ()=>{
+  renderBoxBrief();
+  if(currentIdentity === "teacher") renderTeacherStat();
+  goPage(page1);
+};
+back2Btn.onclick = ()=>{
+  goPage(page2);
+};
+goTaskBtn.onclick = function(){
+  if(!selectedChild) return;
+  currChildName.innerText = selectedChild.name;
+  currIdentityText.innerText = currentIdentity==="parent"?"家长":"老师";
+  if(currentIdentity === "parent"){
+    parentSuggestCard.classList.remove("hide");
+    suggestText.innerText = getTodaySuggestion();
+  }else{
+    parentSuggestCard.classList.add("hide");
+  }
+  resetTaskForm();
+  goPage(page3);
+};
+goRecordBtn.onclick = function(){
+  if(!selectedChild) return;
+  renderPersonRecord(selectedChild);
+  goPage(page6);
+};
+doCheckInBtn.onclick = function(){
+  if(!selectedChild || !currentIdentity) return;
+  let box = initBox();
+  const drawRes = randomDraw();
+  box.totalCheckIns += 1;
+  box.collected[drawRes.key] += 1;
+  box.records.push({
+    childId:selectedChild.id,
+    childName:selectedChild.name,
+    item:drawRes.key,
+    identity:currentIdentity,
+    note:noteInput.value.trim(),
+    media:selectedMediaBase64,
+    mediaType:selectedMediaType,
+    time:new Date().toLocaleString(),
+    suggest:currentIdentity==="parent" ? getTodaySuggestion() : ""
+  });
+  saveBox(box);
+
+  flipCard.classList.remove("flipped");
+  resultText.style.display="none";
+  drawDoneBtn.style.display="none";
+  drawIcon.innerText = drawRes.icon;
+  drawItemName.innerText = drawRes.name;
+  goPage(page4);
+
+  setTimeout(()=>{
+    flipCard.classList.add("flipped");
+    setTimeout(()=>{
+      resultText.style.display="block";
+      drawDoneBtn.style.display="block";
+    },400);
+  },2000);
+};
+drawDoneBtn.onclick = function(){
+  selectedChild=null;
+  document.querySelectorAll(".child-item").forEach(d=>d.classList.remove("active"));
+  renderBoxBrief();
+  goPage(page0);
+};
+goBoxBtn.onclick = function(){renderBoxPage();goPage(page5);};
+backFromBoxBtn.onclick = function(){renderBoxBrief();if(currentIdentity === "teacher") renderTeacherStat();goPage(page1);};
+backFromRecordBtn.onclick = function(){goPage(page2);};
+
+renderChildList();
+renderBoxBrief();
+goPage(page0);
+</script>
+</body>
+</html>
