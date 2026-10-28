@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Prek‑C｜森林探险家打卡</title>
+<title>Prek-C｜森林探险家打卡</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:"PingFang SC",system-ui,-apple-system}
-body{
+html,body{
   background:#f4f9ee;
   color:#2c422e;
-  padding:0;
-  max-width:100%;
-  overflow-x:hidden;
+  width:100%;
+  height:100%;
+  overflow:hidden;
 }
 .app{
   width:100vw;
-  min-height:100vh;
+  height:100vh;
   display:flex;
   justify-content:center;
   align-items:flex-start;
@@ -24,23 +24,29 @@ body{
 .phone{
   width:100%;
   max-width:430px;
+  height:100vh;
   background:#f4f9ee;
-  min-height:100vh;
-  padding:12px;
-  margin:0 auto;
-  box-shadow:0 0 20px rgba(0,0,0,0.05);
   position:relative;
   overflow:hidden;
 }
-.page-wrap{
+/* 翻页外层容器，横向滑动，固定视口高度 */
+.page-slider{
   width:100%;
   height:100%;
+  position:relative;
+}
+.page-wrap{
   position:absolute;
   top:0;
   left:0;
+  width:100%;
+  height:100%;
+  padding:12px;
+  padding-bottom:24px;
   transition: transform 0.4s ease-in-out;
   backface-visibility:hidden;
-  padding:12px;
+  overflow-y:auto; /* 内容长就可以下拉滚动 */
+  overscroll-behavior:contain;
 }
 .page-next{
   transform: translateX(105%);
@@ -52,7 +58,7 @@ body{
   transform: translateX(0);
 }
 h1{font-size:20px;margin-bottom:6px;color:#375739;text-align:center}
-.sub{color:#547056;margin-bottom:16px;font-size:14px;text-align:center}
+.sub{color:#547056;margin-bottom:12px;font-size:14px;text-align:center}
 .card{
   background:#fff;
   border-radius:12px;
@@ -170,17 +176,17 @@ video.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
   transform: rotateY(180deg);
 }
 
-/* 身份封面 */
+/* 封面 */
 .cover{
   width:100%;
-  min-height:100vh;
+  height:100%;
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:20px 12px;
 }
 .cover-card{
   width:100%;
+  height:calc(100% - 10px);
   border-radius:20px;
   overflow:hidden;
   background:
@@ -189,6 +195,9 @@ video.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
     linear-gradient(160deg, #6fae6a 0%, #4b8c59 45%, #2f6b45 100%);
   box-shadow:0 18px 40px rgba(44,82,46,0.35);
   position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .cover-forest{
   position:absolute;
@@ -203,9 +212,10 @@ video.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
 .cover-content{
   position:relative;
   z-index:2;
-  padding:40px 18px 180px;
+  padding:18px 18px 170px;
   text-align:center;
   color:#fff;
+  width:100%;
 }
 .cover-logo{
   display:inline-flex;
@@ -220,7 +230,7 @@ video.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
   margin-bottom:14px;
 }
 .cover-title{
-  font-size:30px;
+  font-size:28px;
   font-weight:800;
   line-height:1.15;
   margin-bottom:10px;
@@ -285,19 +295,20 @@ video.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
   padding:4px 0;
   font-size:14px;
 }
+.hide{display:none !important;}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="phone">
-    <div id="app">
-      <!--P0 身份封面页-->
+    <div class="page-slider" id="app">
+      <!--P0 封面-->
       <div id="page0" class="page-wrap page-active">
         <div class="cover">
           <div class="cover-card">
             <div class="cover-forest"></div>
             <div class="cover-content">
-              <div class="cover-logo">🌲 Prek‑C · 森林探险家</div>
+              <div class="cover-logo">🌲 Prek-C · 森林探险家</div>
               <div class="cover-title">亲子运动<br><span>探险打卡</span></div>
               <div class="cover-slogan">走进森林，快乐动起来，收集属于我们的自然宝藏</div>
               <div class="cover-hint">
@@ -315,10 +326,8 @@ video.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
         </div>
       </div>
 
-      <!--P1 选择小朋友页-->
+      <!--P1 选择小探险家-->
       <div id="page1" class="page-wrap page-next">
-        <h1>🌲 Prek‑C 森林探险家</h1>
-        <div class="sub">身份：<span id="showIdentity"></span>｜选择小探险家</div>
         <div class="card" id="teacherStatCard">
           <h3>📊今日打卡统计</h3>
           <div id="statText"></div>
@@ -336,7 +345,7 @@ video.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
         <button class="btn back-btn" id="back0Btn">← 返回选择身份</button>
       </div>
 
-      <!--P2 功能选择页（打卡 / 藏宝记录）-->
+      <!--P2 功能菜单-->
       <div id="page2" class="page-wrap page-next">
         <h1>✨探险菜单</h1>
         <div class="sub">小探险家：<span id="currChildName2"></span></div>
@@ -388,7 +397,7 @@ video.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
 
       <!--P5 班级宝盒-->
       <div id="page5" class="page-wrap page-next">
-        <h1>📦 Prek‑C 班级收藏宝盒</h1>
+        <h1>📦 Prek-C 班级收藏宝盒</h1>
         <div class="box-view">
           <div>宝盒阶段：<span id="boxStage"></span></div>
           <div>班级总打卡次数：<span id="totalCheck"></span></div>
@@ -415,7 +424,6 @@ video.img-preview{max-width:100%;border-radius:8px;margin:8px 0}
         </div>
         <button class="btn back-btn" id="backFromRecordBtn">← 返回探险菜单</button>
       </div>
-
     </div>
   </div>
 </div>
@@ -534,11 +542,11 @@ function goPage(target){
     p.classList.add("page-next");
   })
   target.classList.add("page-active");
+  target.scrollTop = 0;
 }
 
 const btnParent = document.getElementById("btnParent");
 const btnTeacher = document.getElementById("btnTeacher");
-const showIdentity = document.getElementById("showIdentity");
 const back0Btn = document.getElementById("back0Btn");
 const back1Btn = document.getElementById("back1Btn");
 const back2Btn = document.getElementById("back2Btn");
@@ -685,13 +693,11 @@ function resetTaskForm(){
 
 btnParent.onclick = function(){
   currentIdentity = "parent";
-  showIdentity.innerText = "👨‍👩‍👧‍👦家长";
   teacherStatCard.classList.add("hide");
   goPage(page1);
 };
 btnTeacher.onclick = function(){
   currentIdentity = "teacher";
-  showIdentity.innerText = "👩‍🏫老师";
   teacherStatCard.classList.remove("hide");
   renderTeacherStat();
   goPage(page1);
@@ -704,13 +710,16 @@ back0Btn.onclick = ()=>{
 };
 back1Btn.onclick = ()=>{
   renderBoxBrief();
-  if(currentIdentity === "teacher") renderTeacherStat();
   goPage(page1);
 };
-back2Btn.onclick = ()=>{
-  goPage(page2);
+goBoxBtn.onclick = ()=>{
+  renderBoxPage();
+  goPage(page5);
 };
-goTaskBtn.onclick = function(){
+backFromBoxBtn.onclick = ()=>{
+  goPage(page1);
+};
+goTaskBtn.onclick = ()=>{
   if(!selectedChild) return;
   currChildName.innerText = selectedChild.name;
   currIdentityText.innerText = currentIdentity==="parent"?"家长":"老师";
@@ -723,58 +732,57 @@ goTaskBtn.onclick = function(){
   resetTaskForm();
   goPage(page3);
 };
-goRecordBtn.onclick = function(){
+goRecordBtn.onclick = ()=>{
   if(!selectedChild) return;
   renderPersonRecord(selectedChild);
   goPage(page6);
 };
+back2Btn.onclick = ()=>{
+  goPage(page2);
+};
+backFromRecordBtn.onclick = ()=>{
+  goPage(page2);
+};
+
 doCheckInBtn.onclick = function(){
-  if(!selectedChild || !currentIdentity) return;
+  if(!selectedChild) return;
   let box = initBox();
-  const drawRes = randomDraw();
+  const drawResult = randomDraw();
+  const rec = {
+    childId: selectedChild.id,
+    childName: selectedChild.name,
+    identity: currentIdentity,
+    note: noteInput.value.trim(),
+    media: selectedMediaBase64,
+    mediaType: selectedMediaType,
+    item: drawResult.key,
+    time: getTodayStr()
+  };
+  box.records.push(rec);
   box.totalCheckIns += 1;
-  box.collected[drawRes.key] += 1;
-  box.records.push({
-    childId:selectedChild.id,
-    childName:selectedChild.name,
-    item:drawRes.key,
-    identity:currentIdentity,
-    note:noteInput.value.trim(),
-    media:selectedMediaBase64,
-    mediaType:selectedMediaType,
-    time:new Date().toLocaleString(),
-    suggest:currentIdentity==="parent" ? getTodaySuggestion() : ""
-  });
+  box.collected[drawResult.key] += 1;
   saveBox(box);
 
   flipCard.classList.remove("flipped");
-  resultText.style.display="none";
-  drawDoneBtn.style.display="none";
-  drawIcon.innerText = drawRes.icon;
-  drawItemName.innerText = drawRes.name;
-  goPage(page4);
-
+  drawIcon.innerText = drawResult.icon;
+  drawItemName.innerText = drawResult.name;
+  resultText.style.display = "none";
+  drawDoneBtn.style.display = "none";
   setTimeout(()=>{
     flipCard.classList.add("flipped");
-    setTimeout(()=>{
-      resultText.style.display="block";
-      drawDoneBtn.style.display="block";
-    },400);
-  },2000);
+  },200);
+  setTimeout(()=>{
+    resultText.style.display = "block";
+    drawDoneBtn.style.display = "block";
+  },1200);
+  goPage(page4);
 };
-drawDoneBtn.onclick = function(){
-  selectedChild=null;
-  document.querySelectorAll(".child-item").forEach(d=>d.classList.remove("active"));
-  renderBoxBrief();
-  goPage(page0);
+drawDoneBtn.onclick = ()=>{
+  goPage(page2);
 };
-goBoxBtn.onclick = function(){renderBoxPage();goPage(page5);};
-backFromBoxBtn.onclick = function(){renderBoxBrief();if(currentIdentity === "teacher") renderTeacherStat();goPage(page1);};
-backFromRecordBtn.onclick = function(){goPage(page2);};
 
 renderChildList();
 renderBoxBrief();
-goPage(page0);
 </script>
 </body>
 </html>
