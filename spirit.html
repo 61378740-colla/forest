@@ -1,203 +1,97 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>森林精灵</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>森林小精灵</title>
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: radial-gradient(circle at center, #dff6d8 0%, #a8d8a2 45%, #6fae6a 100%);
-    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-  }
-
-  .status {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .spirit-scene {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-
-  .spirit-aura {
-    position: absolute;
-    width: 520px;
-    height: 520px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 40%, rgba(255,255,255,0) 70%);
-    animation: auraPulse 2.4s ease-in-out infinite;
-    z-index: 1;
-  }
-
-  .spirit-img {
-    position: relative;
-    width: 340px;
-    max-width: 78%;
-    z-index: 2;
-    animation: spiritFloat 3s ease-in-out infinite;
-    user-select: none;
-    -webkit-user-drag: none;
-    border-radius: 20px;
-    box-shadow:
-      0 20px 45px rgba(60, 120, 60, 0.35),
-      0 0 40px rgba(255, 255, 255, 0.35);
-  }
-
-  .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.55);
-    transform: scale(0);
-    animation: rippleEffect 0.9s ease-out forwards;
-    pointer-events: none;
-    z-index: 3;
-  }
-
-  @keyframes auraPulse {
-    0%, 100% { transform: scale(1); opacity: 0.9; }
-    50% { transform: scale(1.08); opacity: 1; }
-  }
-
-  @keyframes spiritFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-14px); }
-  }
-
-  @keyframes spiritTalk {
-    0%,100% { transform: translateY(-14px) scale(1); }
-    50% { transform: translateY(-14px) scale(1.03); }
-  }
-
-  @keyframes rippleEffect {
-    0% { transform: scale(0); opacity: 0.7; }
-    100% { transform: scale(2.4); opacity: 0; }
-  }
-
-  @media (max-width: 480px) {
-    .spirit-img { width: 260px; }
-    .spirit-aura { width: 420px; height: 420px; }
-  }
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:radial-gradient(circle at center, #dff6d8 0%, #a8db82 45%, #6fae6a 100%);
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.wrap{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.elf-img{
+  width:280px;
+  cursor:pointer;
+  transition: transform 0.2s;
+}
+.elf-img:active{
+  transform:scale(0.95);
+}
+.tip{
+  margin-top:24px;
+  color:#2c5424;
+  font-size:18px;
+  text-align:center;
+}
+.status{
+  margin-top:12px;
+  color:#3b7033;
+  font-size:16px;
+}
 </style>
 </head>
-
 <body>
-
-<div class="status" id="status">对话中</div>
-
-<div class="spirit-scene" id="spiritScene">
-  <div class="spirit-aura"></div>
-  <img class="spirit-img" id="spiritImg" src="spirit.gif" alt="森林精灵" />
+<div class="wrap">
+  <img class="elf-img" src="spirit.gif" alt="森林小精灵" onclick="startListen()">
+  <div class="tip">点击小精灵，和它说话✨</div>
+  <div class="status" id="status"></div>
 </div>
 
 <script>
-  const scene = document.getElementById("spiritScene");
-  const img = document.getElementById("spiritImg");
-  const status = document.getElementById("status");
+const synth = window.speechSynthesis;
+function speak(text){
+  synth.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "zh-CN";
+  utter.rate = 0.95;
+  synth.speak(utter);
+}
 
-  let isSpeaking = false;
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = "zh-CN";
+recognition.continuous = false;
+recognition.interimResults = false;
 
-  function pickNaturalVoice() {
-    const voices = speechSynthesis.getVoices();
-    const preferred = voices.find(v =>
-      v.lang.includes("zh") &&
-      (v.name.includes("Mei-Jia") ||
-       v.name.includes("Tingting") ||
-       v.name.includes("Yunxi") ||
-       v.name.includes("Xiaoxiao") ||
-       v.name.includes("Chinese"))
-    );
-    return preferred || voices.find(v => v.lang.includes("zh")) || null;
+const statusEl = document.getElementById("status");
+
+recognition.onstart = function(){
+  statusEl.innerText = "👂小精灵正在听你说话……";
+};
+recognition.onend = function(){
+  statusEl.innerText = "";
+};
+recognition.onresult = function(e){
+  let words = e.results[0][0].transcript.trim();
+  statusEl.innerText = "你说：" + words;
+
+  if(words.includes("我要去运动啦")){
+    setTimeout(()=>{
+      speak("记得做好运动前的准备哦");
+    },300);
+  }else if(words.includes("我运动完啦")){
+    setTimeout(()=>{
+      speak("太棒啦！休息一下，喝点水补充能量吧");
+    },300);
+  }else{
+    speak("哇，我听到啦，快来和我一起去森林探险吧！");
   }
+};
 
-  function speak(text) {
-    speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = "zh-CN";
-    utter.rate = 1.05;
-    utter.pitch = 1.12;
-    utter.volume = 1;
-    const voice = pickNaturalVoice();
-    if (voice) utter.voice = voice;
-
-    utter.onstart = () => {
-      isSpeaking = true;
-      img.style.animation = "none";
-      img.offsetHeight;
-      img.style.animation = "spiritTalk 0.45s ease-in-out infinite";
-    };
-    utter.onend = () => {
-      isSpeaking = false;
-      img.style.animation = "spiritFloat 3s ease-in-out infinite";
-    };
-    utter.onerror = () => {
-      isSpeaking = false;
-      img.style.animation = "spiritFloat 3s ease-in-out infinite";
-    };
-    speechSynthesis.speak(utter);
-  }
-
-  function stopSpeak() {
-    speechSynthesis.cancel();
-    isSpeaking = false;
-    img.style.animation = "spiritFloat 3s ease-in-out infinite";
-  }
-
-  function createRipple(x, y) {
-    const ripple = document.createElement("span");
-    ripple.className = "ripple";
-    const size = Math.max(scene.clientWidth, scene.clientHeight) * 0.25;
-    ripple.style.width = ripple.style.height = size + "px";
-    ripple.style.left = (x - size / 2) + "px";
-    ripple.style.top = (y - size / 2) + "px";
-    scene.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 900);
-  }
-
-  scene.addEventListener("click", (e) => {
-    createRipple(e.clientX, e.clientY);
-    if (isSpeaking) {
-      stopSpeak();
-      return;
-    }
-    const lines = [
-      "你好呀，我是森林精灵。",
-      "很高兴认识你。",
-      "今天也要开心哦。",
-      "有什么想和我聊聊的吗？",
-      "森林里的风，正在轻轻吹过。",
-      "你愿意听我说说话吗？",
-      "靠近一点，我告诉你一个小秘密。",
-      "只要你点击我，我就会陪你聊天。"
-    ];
-    const text = lines[Math.floor(Math.random() * lines.length)];
-    status.textContent = text;
-    speak(text);
-  });
-
-  if ("speechSynthesis" in window) {
-    speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = () => pickNaturalVoice();
-  }
+function startListen(){
+  recognition.start();
+}
 </script>
-
 </body>
 </html>
