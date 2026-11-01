@@ -57,14 +57,12 @@ synth.onvoiceschanged = () => {
   voiceList = synth.getVoices();
 };
 
-// 可爱软一点的普通话朗读
 function speak(text){
   synth.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = "zh-CN";
-  utter.rate = 0.88; // 放慢速度，更柔和
-  utter.pitch = 1.15; // 音调拉高，可爱童声感
-  // 优先找中文可爱音色
+  utter.rate = 0.88;
+  utter.pitch = 1.15;
   for(let v of voiceList){
     if(v.lang === "zh-CN"){
       utter.voice = v;
@@ -74,7 +72,6 @@ function speak(text){
   synth.speak(utter);
 }
 
-// 语音识别，延长超时，适配手机
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = "zh-CN";
 recognition.continuous = false;
@@ -94,7 +91,6 @@ recognition.onerror = function(err){
   setTimeout(()=>{statusEl.innerText = ""},2000);
 };
 recognition.onend = function(){
-  // 识别结束清空提示
   setTimeout(()=>{
     statusEl.innerText = "";
   },1500);
