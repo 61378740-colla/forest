@@ -44,21 +44,36 @@ html,body{
 </head>
 <body>
 <div class="wrap">
-  <img class="elf-img" src="spirit.gif" alt="森林小精灵" onclick="startListen()">
+  <img class="elf-img" src="spirit.GIF" alt="森林小精灵" onclick="startListen()">
   <div class="tip">点击小精灵，和它说话✨</div>
   <div class="status" id="status"></div>
 </div>
 
 <script>
 const synth = window.speechSynthesis;
+let voiceList = [];
+synth.onvoiceschanged = () => {
+  voiceList = synth.getVoices();
+};
+
+// 普通话朗读
 function speak(text){
   synth.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = "zh-CN";
   utter.rate = 0.95;
+  utter.pitch = 1.0;
+  // 优先匹配普通话声源
+  for(let v of voiceList){
+    if(v.lang === "zh-CN"){
+      utter.voice = v;
+      break;
+    }
+  }
   synth.speak(utter);
 }
 
+// 语音识别固定普通话
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = "zh-CN";
 recognition.continuous = false;
