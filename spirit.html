@@ -12,6 +12,9 @@ html,body{
   overflow:hidden;
   background:radial-gradient(circle at center, #dff6d8 0%, #a8db82 45%, #6fae6a 100%);
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  /* 禁止长按复制 */
+  -webkit-user-select: none;
+  user-select: none;
 }
 .wrap{
   width:100%;
@@ -30,6 +33,21 @@ html,body{
 .elf-img:active{
   transform:scale(0.95);
 }
+/* 语音按钮样式 */
+.voice-btn{
+  margin-top:20px;
+  padding:12px 32px;
+  border:none;
+  border-radius:999px;
+  background:#578c52;
+  color:white;
+  font-size:18px;
+  cursor:pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.voice-btn:active{
+  background:#447040;
+}
 .tip{
   margin-top:24px;
   color:#2c5424;
@@ -45,8 +63,10 @@ html,body{
 </head>
 <body>
 <div class="wrap">
-  <img class="elf-img" src="spirit.GIF" alt="森林小精灵" onclick="startListen()">
-  <div class="tip">点击小精灵，和它说话✨</div>
+  <img class="elf-img" src="spirit.GIF" alt="森林小精灵">
+  <!-- 新增语音按钮 -->
+  <button class="voice-btn" onclick="startListen()">🎤 点我和小精灵说话</button>
+  <div class="tip">点击麦克风按钮，和它聊天✨</div>
   <div class="status" id="status"></div>
 </div>
 
@@ -87,7 +107,7 @@ recognition.onspeechstart = function(){
   statusEl.innerText = "听到你的声音咯～";
 };
 recognition.onerror = function(err){
-  statusEl.innerText = "没有听到声音，再点小精灵试试吧";
+  statusEl.innerText = "没有听到声音，再点麦克风试试吧";
   setTimeout(()=>{statusEl.innerText = ""},2000);
 };
 recognition.onend = function(){
@@ -107,6 +127,22 @@ recognition.onresult = function(e){
     setTimeout(()=>{
       speak("太棒啦！休息一下，喝点水补充能量吧");
     },300);
+  }else if(words.includes("我玩累了")){
+    setTimeout(()=>{
+      speak("辛苦啦，快来补充能量吧！");
+    },300);
+  }else if(words.includes("早上好")){
+    setTimeout(()=>{
+      speak("早上好呀小探险家，今天也要勇敢闯关");
+    },300);
+  }else if(words.includes("再见")){
+    setTimeout(()=>{
+      speak("拜拜，期待下次和你一起探险哦");
+    },300);
+  }else if(words.includes("我找到宝藏啦")){
+    setTimeout(()=>{
+      speak("哇！你真厉害，恭喜找到宝藏");
+    },300);
   }else{
     speak("哇，我听到啦，快来和我一起去森林探险吧！");
   }
@@ -122,3 +158,4 @@ function startListen(){
 </script>
 </body>
 </html>
+
