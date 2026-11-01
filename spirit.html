@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no">
 <title>森林小精灵</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -25,6 +25,7 @@ html,body{
   width:280px;
   cursor:pointer;
   transition: transform 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 .elf-img:active{
   transform:scale(0.95);
@@ -56,14 +57,14 @@ synth.onvoiceschanged = () => {
   voiceList = synth.getVoices();
 };
 
-// 普通话朗读
+// 可爱软一点的普通话朗读
 function speak(text){
   synth.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = "zh-CN";
-  utter.rate = 0.95;
-  utter.pitch = 1.0;
-  // 优先匹配普通话声源
+  utter.rate = 0.88; // 放慢速度，更柔和
+  utter.pitch = 1.15; // 音调拉高，可爱童声感
+  // 优先找中文可爱音色
   for(let v of voiceList){
     if(v.lang === "zh-CN"){
       utter.voice = v;
@@ -73,19 +74,30 @@ function speak(text){
   synth.speak(utter);
 }
 
-// 语音识别固定普通话
+// 语音识别，延长超时，适配手机
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = "zh-CN";
 recognition.continuous = false;
 recognition.interimResults = false;
+recognition.maxAlternatives = 1;
 
 const statusEl = document.getElementById("status");
 
 recognition.onstart = function(){
-  statusEl.innerText = "👂小精灵正在听你说话……";
+  statusEl.innerText = "👂小精灵认真听你说话啦（慢慢说）";
+};
+recognition.onspeechstart = function(){
+  statusEl.innerText = "听到你的声音咯～";
+};
+recognition.onerror = function(err){
+  statusEl.innerText = "没有听到声音，再点小精灵试试吧";
+  setTimeout(()=>{statusEl.innerText = ""},2000);
 };
 recognition.onend = function(){
-  statusEl.innerText = "";
+  // 识别结束清空提示
+  setTimeout(()=>{
+    statusEl.innerText = "";
+  },1500);
 };
 recognition.onresult = function(e){
   let words = e.results[0][0].transcript.trim();
@@ -105,7 +117,11 @@ recognition.onresult = function(e){
 };
 
 function startListen(){
-  recognition.start();
+  try{
+    recognition.start();
+  }catch(e){
+    statusEl.innerText = "正在听，请讲～";
+  }
 }
 </script>
 </body>
